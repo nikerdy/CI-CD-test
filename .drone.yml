@@ -1,0 +1,33 @@
+kind: pipeline
+name: test
+steps:
+- name: unit_test
+  image: phpunit/phpunit
+  settings:
+    debug: true
+  commands:
+  - phpunit --configuration config.xml
+
+- name: push_docker  
+  image: plugins/docker
+  settings:
+    username:
+      from_secret: docker_username
+    password:
+      from_secret: docker_password
+    repo: wl02661442/nginx
+    tag: "2.0"
+    debug: true
+
+- name: k8s_deploy
+  image: quay.io/honestbee/drone-kubernetes
+  settings:
+    kubernetes_server: https://104.199.207.138
+    kubernetes_token:
+      from_secret: kubernetes_token
+    namespace: default
+    deployment: nginx
+    repo: wl02661442/nginx
+    tag: "2.0"
+    container: nginx
+    debug: true

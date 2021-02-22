@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      volumes:
+      - name: html-share
+        hostPath:
+          path: /tmp
+          type: Directory
+      containers:
+      - name: nginx
+        image: wl02661442/nginx:1.0
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - mountPath: /usr/share/nginx/html
+          name: html-share
+        lifecycle:
+          postStart:
+            exec:
+              command: ["/bin/cp","-r","/html/.","/usr/share/nginx/html"]        
+      - name: php
+        image: php:fpm-alpine
+        ports:
+        - containerPort: 9000
+        volumeMounts:
+        - mountPath: /var/www/html
+          name: html-share
